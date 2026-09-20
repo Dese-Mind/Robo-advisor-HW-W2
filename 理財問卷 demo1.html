@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Investor Profiling System</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: "#0B1F3A",
+            teal: "#13B8A6",
+            cyan: "#27D3C2",
+            mist: "#F3F7FA",
+            ink: "#14213D"
+          },
+          boxShadow: {
+            soft: "0 12px 35px rgba(11, 31, 58, 0.08)"
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(39, 211, 194, 0.08), transparent 28%),
+        #f3f7fa;
+      color: #14213d;
+      font-family:
+        Inter,
+        "Noto Sans TC",
+        "PingFang TC",
+        "Microsoft JhengHei",
+        system-ui,
+        sans-serif;
+    }
+
+    .glass-header {
+      background: linear-gradient(135deg, #0b1f3a 0%, #12345b 100%);
+    }
+
+    .section-card {
+      border: 1px solid rgba(11, 31, 58, 0.07);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 12px 35px rgba(11, 31, 58, 0.07);
+    }
+
+    .question-card {
+      border: 1px solid #e8eef3;
+      border-radius: 16px;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .question-card:hover {
+      border-color: rgba(19, 184, 166, 0.5);
+      box-shadow: 0 7px 20px rgba(19, 184, 166, 0.08);
+    }
+
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid #e5ebf0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fbfdfe;
+      height: 100%;
+    }
+
+    .option-label:hover {
+      border-color: #13b8a6;
+      background: #f1fffd;
+    }
+
+    .option-label:has(input:checked) {
+      border-color: #13b8a6;
+      background: #e9fffb;
+      box-shadow: 0 0 0 3px rgba(19, 184, 166, 0.1);
+    }
+
+    .option-label input {
+      accent-color: #13b8a6;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .metric-card {
+      min-height: 130px;
+      border-radius: 18px;
+      border: 1px solid #e7eef2;
+      background: linear-gradient(145deg, #ffffff, #f8fbfc);
+    }
+
+    .status-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      display: inline-block;
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12);
+    }
+
+    .status-red {
+      background: #ef4444;
+    }
+
+    .status-yellow {
+      background: #f59e0b;
+    }
+
+    .status-green {
+      background: #10b981;
+    }
+
+    .status-panel-red {
+      background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+      border-color: #fecdd3;
+    }
+
+    .status-panel-yellow {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border-color: #fde68a;
+    }
+
+    .status-panel-green {
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      border-color: #a7f3d0;
+    }
+
+    .risk-conservative {
+      color: #2563eb;
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .risk-moderate {
+      color: #a16207;
+      background: #fefce8;
+      border-color: #fde68a;
+    }
+
+    .risk-aggressive {
+      color: #dc2626;
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 340px;
+    }
+
+    .empty-state {
+      min-height: 340px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #64748b;
+      border: 1px dashed #cbd5e1;
+      border-radius: 18px;
+      background: #f8fafc;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.45s ease both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .progress-line {
+      height: 5px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #13b8a6, #27d3c2);
+      transition: width 0.45s ease;
+    }
+
+    @media (max-width: 640px) {
+      .chart-container {
+        height: 290px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="glass-header text-white">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-teal-300/30 bg-teal-300/10 px-3 py-1 text-xs font-semibold tracking-wider text-teal-100">
+            <span class="status-dot status-green"></span>
+            FINTECH RISK INTELLIGENCE
+          </div>
+
+          <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+            Digital Investor Profiling System
+          </h1>
+
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            透過傳統風險、行為心理與財務能力三大維度，
+            建立您的動態投資人風險圖像。
+          </p>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/10 px-5 py-4 backdrop-blur">
+          <p class="text-xs uppercase tracking-widest text-slate-300">Assessment Engine</p>
+          <p class="mt-1 text-lg font-semibold">MPT Allocation Framework</p>
+          <p class="mt-1 text-xs text-slate-300">即時計算・客觀檢核・個人化建議</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <form id="profilingForm" novalidate>
+      <div class="mb-8 grid gap-6 lg:grid-cols-3">
+        <div class="section-card p-5 lg:col-span-2">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-teal-600">Assessment Progress</p>
+              <h2 class="mt-1 text-xl font-bold text-navy">開始您的投資人輪廓分析</h2>
+            </div>
+
+            <div class="rounded-xl bg-slate-100 px-3 py-2 text-right">
+              <p class="text-xs text-slate-500">Questions</p>
+              <p class="font-bold text-navy">10 Items</p>
+            </div>
+          </div>
+
+          <div class="mt-5 progress-line">
+            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+          </div>
+
+          <p id="progressText" class="mt-2 text-xs text-slate-500">尚未完成任何題目</p>
+        </div>
+
+        <div class="section-card flex items-center gap-4 p-5">
+          <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-3xl">
+            📊
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-navy">量化分析提示</p>
+            <p class="mt-1 text-xs leading-5 text-slate-500">
+              請依照真實狀況回答，系統將自動辨識風險承受力與行為偏誤。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 1 -->
+      <section class="section-card mb-8 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white px-5 py-5 sm:px-7">
+          <div class="flex items-start gap-4">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20">
+              01
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-blue-600">Traditional Risk Profiling</p>
+              <h2 class="mt-1 text-xl font-bold text-navy">傳統風險評估</h2>
+              <p class="mt-1 text-sm text-slate-500">評估您的投資目標、時間與基礎風險承受能力。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-7 lg:grid-cols-2">
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-blue-600">Q1 · Age</p>
+              <h3 class="mt-1 font-bold text-navy">您的年齡</h3>
+            </div>
+
+            <div class="grid gap-3">
+              <label class="option-label">
+                <input type="radio" name="q1" value="1" />
+                <span><b>1 分</b> · 65 歲以上</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q1" value="2" />
+                <span><b>2 分</b> · 45 至 65 歲</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q1" value="3" />
+                <span><b>3 分</b> · 45 歲以下</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-blue-600">Q2 · Income & Wealth</p>
+              <h3 class="mt-1 font-bold text-navy">收入與資產</h3>
+            </div>
+
+            <div class="grid gap-3">
+              <label class="option-label">
+                <input type="radio" name="q2" value="1" />
+                <span><b>1 分</b> · 低於平均／資產有限</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q2" value="2" />
+                <span><b>2 分</b> · 穩定中產</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q2" value="3" />
+                <span><b>3 分</b> · 高收入／高資產</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-blue-600">Q3 · Financial Goal</p>
+              <h3 class="mt-1 font-bold text-navy">投資目標</h3>
+            </div>
+
+            <div class="grid gap-3">
+              <label class="option-label">
+                <input type="radio" name="q3" value="1" />
+                <span><b>1 分</b> · 保本與現金流</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q3" value="2" />
+                <span><b>2 分</b> · 資產穩健增長</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q3" value="3" />
+                <span><b>3 分</b> · 追求大幅資本利得</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-blue-600">Q4 · Investment Horizon</p>
+              <h3 class="mt-1 font-bold text-navy">投資期限</h3>
+            </div>
+
+            <div class="grid gap-3">
+              <label class="option-label">
+                <input type="radio" name="q4" value="1" />
+                <span><b>1 分</b> · 5 年以內</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q4" value="2" />
+                <span><b>2 分</b> · 5 至 10 年</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q4" value="3" />
+                <span><b>3 分</b> · 10 年以上</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5 lg:col-span-2">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-blue-600">Q5 · Risk Tolerance & Loss Capacity</p>
+              <h3 class="mt-1 font-bold text-navy">風險偏好與損失承受力</h3>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-3">
+              <label class="option-label">
+                <input type="radio" name="q5" value="1" />
+                <span><b>1 分</b> · 無法承受本金虧損</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q5" value="2" />
+                <span><b>2 分</b> · 可承受小幅波動</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q5" value="3" />
+                <span><b>3 分</b> · 能承受 20% 以上虧損，以換取高報酬</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Module 2 -->
+      <section class="section-card mb-8 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-purple-50 to-white px-5 py-5 sm:px-7">
+          <div class="flex items-start gap-4">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-purple-600 font-bold text-white shadow-lg shadow-purple-600/20">
+              02
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-purple-600">Behavioral & Emotional Assessment</p>
+              <h2 class="mt-1 text-xl font-bold text-navy">行為與情緒評估</h2>
+              <p class="mt-1 text-sm text-slate-500">辨識市場波動下的情緒反應、自制力與認知偏誤。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-7">
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-purple-600">Q6 · Anxiety</p>
+              <h3 class="mt-1 font-bold text-navy">若投資組合單月下跌 20%，您會怎麼做？</h3>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-3">
+              <label class="option-label">
+                <input type="radio" name="q6" value="1" />
+                <span><b>1 分</b> · 極度焦慮並全數賣出</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q6" value="2" />
+                <span><b>2 分</b> · 感到不安但維持現狀</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q6" value="3" />
+                <span><b>3 分</b> · 保持冷靜並逢低加碼</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-purple-600">Q7 · Self-Control / Status Quo</p>
+              <h3 class="mt-1 font-bold text-navy">若獲得一筆意外獎金，您會怎麼處理？</h3>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-3">
+              <label class="option-label">
+                <input type="radio" name="q7" value="1" />
+                <span><b>1 分</b> · 立即消費犒賞自己</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q7" value="2" />
+                <span><b>2 分</b> · 部分消費、部分儲蓄</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q7" value="3" />
+                <span><b>3 分</b> · 嚴格按計畫全數投入投資</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-purple-600">Q8 · Overconfidence / Optimism</p>
+              <h3 class="mt-1 font-bold text-navy">您對自己挑選標的與未來獲利的預期為何？</h3>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-3">
+              <label class="option-label">
+                <input type="radio" name="q8" value="1" />
+                <span><b>1 分</b> · 高度悲觀／完全依賴他人</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q8" value="2" />
+                <span><b>2 分</b> · 預期與市場平均相當，客觀適度</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q8" value="3" />
+                <span><b>3 分</b> · 堅信自己能輕易擊敗大盤</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Module 3 -->
+      <section class="section-card mb-8 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-5 sm:px-7">
+          <div class="flex items-start gap-4">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-600 font-bold text-white shadow-lg shadow-emerald-600/20">
+              03
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-emerald-600">Financial Capacity</p>
+              <h2 class="mt-1 text-xl font-bold text-navy">財務條件</h2>
+              <p class="mt-1 text-sm text-slate-500">檢核負債與短期流動性需求，判斷客觀投資能力。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-7 md:grid-cols-2">
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-emerald-600">Q9 · Liabilities</p>
+              <h3 class="mt-1 font-bold text-navy">負債狀況</h3>
+            </div>
+
+            <div class="grid gap-3">
+              <label class="option-label">
+                <input type="radio" name="q9" value="1" />
+                <span><b>1 分</b> · 有高額負債／貸款壓力大</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q9" value="2" />
+                <span><b>2 分</b> · 有房貸等良性負債</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q9" value="3" />
+                <span><b>3 分</b> · 無負債</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-emerald-600">Q10 · Liquidity Need</p>
+              <h3 class="mt-1 font-bold text-navy">流動性需求</h3>
+            </div>
+
+            <div class="grid gap-3">
+              <label class="option-label">
+                <input type="radio" name="q10" value="1" />
+                <span><b>1 分</b> · 未來一年需動用超過 5% 資產</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q10" value="2" />
+                <span><b>2 分</b> · 偶爾有小額支出</span>
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q10" value="3" />
+                <span><b>3 分</b> · 完全無流動性需求</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="mb-10 flex flex-col items-center gap-3">
+        <button
+          id="analyzeButton"
+          type="submit"
+          class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-navy px-8 py-4 text-base font-bold text-white shadow-xl shadow-navy/20 transition hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-teal-200 sm:w-auto"
+        >
+          <span>Analyze My Profile</span>
+          <span class="text-xl">→</span>
+        </button>
+
+        <p id="formMessage" class="hidden text-center text-sm font-medium text-red-600"></p>
+      </div>
+    </form>
+
+    <!-- Results -->
+    <section id="resultsSection" class="hidden fade-in">
+      <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-teal-600">Dynamic Investor Risk Profile</p>
+          <h2 class="mt-1 text-3xl font-bold text-navy">您的投資人風險圖像</h2>
+          <p class="mt-2 text-sm text-slate-500">系統已完成三大模組分析與 MPT 資產配置建議。</p>
+        </div>
+
+        <button
+          id="resetButton"
+          type="button"
+          class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-teal-400 hover:text-teal-600"
+        >
+          重新填寫
+        </button>
+      </div>
+
+      <!-- Summary Metrics -->
+      <div class="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="metric-card p-5">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Baseline Risk Score</p>
+          <div class="mt-3 flex items-end gap-2">
+            <span id="baselineScoreDisplay" class="text-4xl font-black text-navy">--</span>
+            <span class="mb-1 text-sm text-slate-400">/ 15</span>
+          </div>
+          <span id="baselineLabel" class="mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-bold">--</span>
+        </div>
+
+        <div class="metric-card p-5">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Financial Capacity</p>
+          <p id="capacityDisplay" class="mt-4 text-3xl font-black text-navy">--</p>
+          <p id="capacityDescription" class="mt-2 text-xs text-slate-500">--</p>
+        </div>
+
+        <div class="metric-card p-5">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Behavioral Tolerance</p>
+          <div class="mt-3 flex items-end gap-2">
+            <span id="behavioralScoreDisplay" class="text-4xl font-black text-navy">--</span>
+            <span class="mb-1 text-sm text-slate-400">/ 6</span>
+          </div>
+          <span id="behavioralLabel" class="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">--</span>
+        </div>
+
+        <div class="metric-card p-5">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Dynamic Allocation</p>
+          <p id="dynamicRiskDisplay" class="mt-4 text-2xl font-black text-navy">--</p>
+          <p class="mt-2 text-xs text-slate-500">紅綠燈調整後的風險等級</p>
+        </div>
+      </div>
+
+      <!-- Traffic Light -->
+      <div id="statusPanel" class="mb-8 rounded-2xl border p-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-4">
+            <span id="statusDot" class="status-dot status-green"></span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Risk Compatibility Matrix</p>
+              <h3 id="statusTitle" class="mt-1 text-2xl font-black text-navy">--</h3>
+            </div>
+          </div>
+
+          <div id="statusBadge" class="w-fit rounded-full bg-white/70 px-4 py-2 text-sm font-bold text-slate-700">
+            --
+          </div>
+        </div>
+
+        <p id="statusMessage" class="mt-5 max-w-4xl text-sm leading-7 text-slate-700">--</p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <!-- Radar -->
+        <div class="section-card p-5 sm:p-7">
+          <div class="mb-5">
+            <p class="text-xs font-bold uppercase tracking-widest text-purple-600">Behavioral Intelligence</p>
+            <h3 class="mt-1 text-xl font-bold text-navy">行為與風險雷達圖</h3>
+            <p class="mt-1 text-sm text-slate-500">各項指標皆以 100 分為滿分。</p>
+          </div>
+
+          <div id="radarEmptyState" class="empty-state">
+            完成問卷後將顯示雷達圖
+          </div>
+
+          <div id="radarWrapper" class="chart-container hidden">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Doughnut -->
+        <div class="section-card p-5 sm:p-7">
+          <div class="mb-5">
+            <p class="text-xs font-bold uppercase tracking-widest text-teal-600">Modern Portfolio Theory</p>
+            <h3 class="mt-1 text-xl font-bold text-navy">MPT 資產配置建議</h3>
+            <p class="mt-1 text-sm text-slate-500">依據動態風險等級建立初步資產配置。</p>
+          </div>
+
+          <div id="doughnutEmptyState" class="empty-state">
+            完成問卷後將顯示資產配置
+          </div>
+
+          <div id="doughnutWrapper" class="chart-container hidden">
+            <canvas id="allocationChart"></canvas>
+          </div>
+
+          <div id="allocationLegend" class="mt-4 hidden grid grid-cols-3 gap-2 text-center text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Alerts and Recommendations -->
+      <div class="mt-8 grid gap-8 lg:grid-cols-2">
+        <div class="section-card p-5 sm:p-7">
+          <div class="mb-5">
+            <p class="text-xs font-bold uppercase tracking-widest text-orange-600">Behavioral Alert</p>
+            <h3 class="mt-1 text-xl font-bold text-navy">行為提醒</h3>
+            <p class="mt-1 text-sm text-slate-500">根據 Q6 至 Q8 的回答提供個人化提醒。</p>
+          </div>
+
+          <div id="behavioralAlerts" class="space-y-3"></div>
+        </div>
+
+        <div class="section-card p-5 sm:p-7">
+          <div class="mb-5">
+            <p class="text-xs font-bold uppercase tracking-widest text-blue-600">Personalized Guidance</p>
+            <h3 class="mt-1 text-xl font-bold text-navy">個人化投資建議</h3>
+            <p class="mt-1 text-sm text-slate-500">綜合風險、能力與行為狀態的執行方向。</p>
+          </div>
+
+          <div id="recommendations" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-xs leading-6 text-slate-500">
+        <strong class="text-slate-700">重要提醒：</strong>
+        本工具提供教育與風險辨識用途，資產配置結果不構成投資邀約、投資建議或報酬保證。
+        實際投資前，請依個人完整財務狀況、投資經驗與專業人士建議進行判斷。
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 text-center text-xs text-slate-400 sm:px-6 lg:px-8">
+      Digital Investor Profiling System · FinTech Risk Intelligence Dashboard
+    </div>
+  </footer>
+
+  <script>
+    let radarChartInstance = null;
+    let allocationChartInstance = null;
+
+    const questionNames = [
+      "q1", "q2", "q3", "q4", "q5",
+      "q6", "q7", "q8", "q9", "q10"
+    ];
+
+    const riskMeta = {
+      Conservative: {
+        zh: "保守型",
+        className: "risk-conservative",
+        allocation: {
+          stocks: 20,
+          bonds: 60,
+          cash: 20
+        }
+      },
+      Moderate: {
+        zh: "穩健型",
+        className: "risk-moderate",
+        allocation: {
+          stocks: 50,
+          bonds: 40,
+          cash: 10
+        }
+      },
+      Aggressive: {
+        zh: "積極型",
+        className: "risk-aggressive",
+        allocation: {
+          stocks: 80,
+          bonds: 15,
+          cash: 5
+        }
+      }
+    };
+
+    const capacityText = {
+      LOW: "客觀能力偏低",
+      MODERATE: "客觀能力中等",
+      HIGH: "客觀能力充足"
+    };
+
+    const statusMeta = {
+      red: {
+        title: "紅燈 · Risk Mismatch",
+        badge: "需要降低風險",
+        message: "客觀財務條件不足以支撐您的投資野心，請調降風險承受度或改善現金流。",
+        panelClass: "status-panel-red",
+        dotClass: "status-red"
+      },
+      yellow: {
+        title: "黃燈 · Behavioral Caution",
+        badge: "需要行為控管",
+        message: "財務條件允許，但行為容易受情緒影響或過度自信。建議設定自動扣款與嚴格停損機制。",
+        panelClass: "status-panel-yellow",
+        dotClass: "status-yellow"
+      },
+      green: {
+        title: "綠燈 · Profile Aligned",
+        badge: "風險狀態平衡",
+        message: "財務條件與心理狀態完美平衡，可依計畫執行。",
+        panelClass: "status-panel-green",
+        dotClass: "status-green"
+      }
+    };
+
+    function getSelectedValue(name) {
+      const selected = document.querySelector(`input[name="${name}"]:checked`);
+      return selected ? Number(selected.value) : null;
+    }
+
+    function getAllAnswers() {
+      const answers = {};
+      questionNames.forEach(name => {
+        answers[name] = getSelectedValue(name);
+      });
+      return answers;
+    }
+
+    function getBaselineRisk(score) {
+      if (score <= 8) return "Conservative";
+      if (score <= 12) return "Moderate";
+      return "Aggressive";
+    }
+
+    function getCapacity(q4, q9, q10) {
+      if (q9 === 1 || q10 === 1 || q4 === 1) return "LOW";
+      if (q9 === 3 && q10 === 3 && q4 === 3) return "HIGH";
+      return "MODERATE";
+    }
+
+    function getBehavioralTolerance(score) {
+      if (score <= 3) return "LOW";
+      if (score === 4) return "MODERATE";
+      return "HIGH";
+    }
+
+    function downgradeRisk(risk) {
+      if (risk === "Aggressive") return "Moderate";
+      if (risk === "Moderate") return "Conservative";
+      return "Conservative";
+    }
+
+    function calculateProfile(answers) {
+      const baselineScore =
+        answers.q1 +
+        answers.q2 +
+        answers.q3 +
+        answers.q4 +
+        answers.q5;
+
+      const baselineRisk = getBaselineRisk(baselineScore);
+      const capacity = getCapacity(answers.q4, answers.q9, answers.q10);
+
+      const behavioralScore = answers.q6 + answers.q7;
+      const behavioralTolerance = getBehavioralTolerance(behavioralScore);
+
+      const redLight =
+        baselineRisk === "Aggressive" &&
+        capacity === "LOW";
+
+      const yellowLight =
+        !redLight &&
+        (
+          (capacity !== "LOW" && behavioralTolerance === "LOW") ||
+          answers.q8 === 3
+        );
+
+      const status = redLight ? "red" : yellowLight ? "yellow" : "green";
+
+      const dynamicRisk =
+        status === "red"
+          ? downgradeRisk(baselineRisk)
+          : baselineRisk;
+
+      return {
+        ...answers,
+        baselineScore,
+        baselineRisk,
+        capacity,
+        behavioralScore,
+        behavioralTolerance,
+        status,
+        dynamicRisk
+      };
+    }
+
+    function mapCapacityToRadar(capacity) {
+      if (capacity === "HIGH") return 95;
+      if (capacity === "MODERATE") return 65;
+      return 35;
+    }
+
+    function mapThreePointScore(value) {
+      return Math.round(((value - 1) / 2) * 70 + 30);
+    }
+
+    function getCognitiveObjectivity(q8) {
+      if (q8 === 2) return 100;
+      if (q8 === 1) return 55;
+      return 30;
+    }
+
+    function mapBaselineToRadar(score) {
+      return Math.round(((score - 5) / 10) * 70 + 30);
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function renderSummary(profile) {
+      const baselineMeta = riskMeta[profile.baselineRisk];
+      const dynamicMeta = riskMeta[profile.dynamicRisk];
+
+      setText("baselineScoreDisplay", profile.baselineScore);
+      setText("capacityDisplay", profile.capacity);
+      setText("capacityDescription", capacityText[profile.capacity]);
+      setText("behavioralScoreDisplay", profile.behavioralScore);
+      setText("dynamicRiskDisplay", dynamicMeta.zh);
+
+      const baselineLabel = document.getElementById("baselineLabel");
+      baselineLabel.textContent = baselineMeta.zh;
+      baselineLabel.className = `mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${baselineMeta.className}`;
+
+      const behavioralLabel = document.getElementById("behavioralLabel");
+      behavioralLabel.textContent = profile.behavioralTolerance;
+      behavioralLabel.className =
+        "mt-3 inline-flex rounded-full px-3 py-1 text-xs font-bold " +
+        (
+          profile.behavioralTolerance === "LOW"
+            ? "bg-red-50 text-red-600"
+            : profile.behavioralTolerance === "MODERATE"
+              ? "bg-yellow-50 text-yellow-700"
+              : "bg-emerald-50 text-emerald-700"
+        );
+    }
+
+    function renderTrafficLight(profile) {
+      const meta = statusMeta[profile.status];
+      const panel = document.getElementById("statusPanel");
+      const dot = document.getElementById("statusDot");
+
+      panel.className = `mb-8 rounded-2xl border p-6 ${meta.panelClass}`;
+      dot.className = `status-dot ${meta.dotClass}`;
+
+      setText("statusTitle", meta.title);
+      setText("statusBadge", meta.badge);
+      setText("statusMessage", meta.message);
+    }
+
+    function renderRadarChart(profile) {
+      const radarEmptyState = document.getElementById("radarEmptyState");
+      const radarWrapper = document.getElementById("radarWrapper");
+
+      radarEmptyState.classList.add("hidden");
+      radarWrapper.classList.remove("hidden");
+
+      const radarData = [
+        mapCapacityToRadar(profile.capacity),
+        mapThreePointScore(profile.q6),
+        mapThreePointScore(profile.q7),
+        getCognitiveObjectivity(profile.q8),
+        mapBaselineToRadar(profile.baselineScore)
+      ];
+
+      if (radarChartInstance) {
+        radarChartInstance.destroy();
+      }
+
+      radarChartInstance = new Chart(
+        document.getElementById("radarChart"),
+        {
+          type: "radar",
+          data: {
+            labels: [
+              "財務承載力",
+              "抗焦慮沉著度",
+              "計畫執行自制力",
+              "認知客觀度",
+              "基礎風險偏好"
+            ],
+            datasets: [
+              {
+                label: "Investor Profile",
+                data: radarData,
+                fill: true,
+                backgroundColor: "rgba(19, 184, 166, 0.20)",
+                borderColor: "#13B8A6",
+                borderWidth: 3,
+                pointBackgroundColor: "#0B1F3A",
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                pointRadius: 5
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  stepSize: 20,
+                  color: "#94A3B8",
+                  backdropColor: "transparent",
+                  font: {
+                    size: 10
+                  }
+                },
+                grid: {
+                  color: "rgba(148, 163, 184, 0.25)"
+                },
+                angleLines: {
+                  color: "rgba(148, 163, 184, 0.25)"
+                },
+                pointLabels: {
+                  color: "#334155",
+                  font: {
+                    size: 12,
+                    weight: "600"
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: context => `${context.raw} / 100`
+                }
+              }
+            }
+          }
+        }
+      );
+    }
+
+    function renderAllocationChart(profile) {
+      const doughnutEmptyState = document.getElementById("doughnutEmptyState");
+      const doughnutWrapper = document.getElementById("doughnutWrapper");
+      const allocationLegend = document.getElementById("allocationLegend");
+      const allocation = riskMeta[profile.dynamicRisk].allocation;
+
+      doughnutEmptyState.classList.add("hidden");
+      doughnutWrapper.classList.remove("hidden");
+      allocationLegend.classList.remove("hidden");
+
+      if (allocationChartInstance) {
+        allocationChartInstance.destroy();
+      }
+
+      allocationChartInstance = new Chart(
+        document.getElementById("allocationChart"),
+        {
+          type: "doughnut",
+          data: {
+            labels: ["股票 ETF", "債券 ETF", "現金"],
+            datasets: [
+              {
+                data: [
+                  allocation.stocks,
+                  allocation.bonds,
+                  allocation.cash
+                ],
+                backgroundColor: ["#0B1F3A", "#13B8A6", "#CBD5E1"],
+                borderColor: "#ffffff",
+                borderWidth: 5,
+                hoverOffset: 8
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "65%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  usePointStyle: true,
+                  pointStyle: "circle",
+                  padding: 18,
+                  color: "#334155",
+                  font: {
+                    size: 12,
+                    weight: "600"
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: context => `${context.label}: ${context.raw}%`
+                }
+              }
+            }
+          }
+        }
+      );
+
+      allocationLegend.innerHTML = `
+        <div class="rounded-xl bg-slate-50 p-3">
+          <p class="font-bold text-navy">${allocation.stocks}%</p>
+          <p class="mt-1 text-slate-500">股票 ETF</p>
+        </div>
+        <div class="rounded-xl bg-teal-50 p-3">
+          <p class="font-bold text-teal-700">${allocation.bonds}%</p>
+          <p class="mt-1 text-slate-500">債券 ETF</p>
+        </div>
+        <div class="rounded-xl bg-slate-100 p-3">
+          <p class="font-bold text-slate-700">${allocation.cash}%</p>
+          <p class="mt-1 text-slate-500">現金</p>
+        </div>
+      `;
+    }
+
+    function createAlertItem(icon, title, body, tone) {
+      const toneClass = {
+        red: "border-red-100 bg-red-50",
+        yellow: "border-yellow-100 bg-yellow-50",
+        green: "border-emerald-100 bg-emerald-50",
+        blue: "border-blue-100 bg-blue-50"
+      }[tone] || "border-slate-100 bg-slate-50";
+
+      return `
+        <div class="rounded-xl border p-4 ${toneClass}">
+          <div class="flex gap-3">
+            <span class="text-xl">${icon}</span>
+            <div>
+              <p class="font-bold text-slate-800">${title}</p>
+              <p class="mt-1 text-sm leading-6 text-slate-600">${body}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBehavioralAlerts(profile) {
+      const container = document.getElementById("behavioralAlerts");
+      const alerts = [];
+
+      if (profile.q6 === 1) {
+        alerts.push(
+          createAlertItem(
+            "🌪️",
+            "波動焦慮偏高",
+            "市場下跌時容易出現恐慌性賣出的風險。建議預先設定再平衡規則，避免在情緒高點做出重大決策。",
+            "red"
+          )
+        );
+      } else if (profile.q6 === 3) {
+        alerts.push(
+          createAlertItem(
+            "🧊",
+            "市場沉著度良好",
+            "您對短期波動具備較佳耐受度，但仍應確認逢低加碼符合整體資產配置與現金流規劃。",
+            "green"
+          )
+        );
+      }
+
+      if (profile.q7 === 1) {
+        alerts.push(
+          createAlertItem(
+            "🛍️",
+            "現狀偏誤與消費傾向",
+            "意外資金可能被快速消費，降低長期複利效果。建議建立自動儲蓄或自動投資機制，先投資再分配可用現金。",
+            "yellow"
+          )
+        );
+      } else if (profile.q7 === 3) {
+        alerts.push(
+          createAlertItem(
+            "🎯",
+            "計畫執行力良好",
+            "您具備較高的投資紀律，適合透過定期定額與預先設定的資產配置持續執行。",
+            "green"
+          )
+        );
+      }
+
+      if (profile.q8 === 3) {
+        alerts.push(
+          createAlertItem(
+            "⚠️",
+            "過度自信警示",
+            "過度相信自己能輕易擊敗市場，可能導致集中持股、頻繁交易或忽略下行風險。建議使用分散化 ETF 與投資上限控管。",
+            "yellow"
+          )
+        );
+      } else if (profile.q8 === 1) {
+        alerts.push(
+          createAlertItem(
+            "🔎",
+            "信心不足提醒",
+            "過度悲觀或完全依賴他人也可能造成長期投資不足。建議先建立簡單、低成本且可持續的核心投資方案。",
+            "blue"
+          )
+        );
+      } else if (profile.q8 === 2) {
+        alerts.push(
+          createAlertItem(
+            "⚖️",
+            "認知客觀度良好",
+            "您對報酬的預期較接近市場平均，適合採用分散化配置並以長期紀律取代短期市場預測。",
+            "green"
+          )
+        );
+      }
+
+      if (alerts.length === 0) {
+        alerts.push(
+          createAlertItem(
+            "✅",
+            "未發現明顯行為極端值",
+            "目前回答未觸發特定極端行為提醒，仍建議定期檢視投資計畫與實際執行狀況。",
+            "green"
+          )
+        );
+      }
+
+      container.innerHTML = alerts.join("");
+    }
+
+    function renderRecommendations(profile) {
+      const container = document.getElementById("recommendations");
+      const recommendations = [];
+
+      if (profile.status === "red") {
+        recommendations.push(
+          createAlertItem(
+            "🛡️",
+            "優先改善財務緩衝",
+            "在提高風險資產比重前，建議先降低高額負債、建立緊急預備金或改善短期現金流。",
+            "red"
+          )
+        );
+      }
+
+      if (profile.dynamicRisk === "Aggressive") {
+        recommendations.push(
+          createAlertItem(
+            "🚀",
+            "積極型配置方向",
+            "可考慮以股票 ETF 作為成長核心，同時保留債券 ETF 與現金部位，以降低單一市場波動影響。",
+            "blue"
+          )
+        );
+      } else if (profile.dynamicRisk === "Moderate") {
+        recommendations.push(
+          createAlertItem(
+            "⚖️",
+            "穩健型配置方向",
+            "建議維持股票與債券的平衡，透過定期再平衡控制風險，避免因短期行情大幅偏離原始配置。",
+            "blue"
+          )
+        );
+      } else {
+        recommendations.push(
+          createAlertItem(
+            "🏦",
+            "保守型配置方向",
+            "建議以債券 ETF 與現金作為資產穩定核心，股票 ETF 控制在適度比例，以兼顧通膨與長期增值。",
+            "blue"
+          )
+        );
+      }
+
+      if (profile.behavioralTolerance === "LOW" || profile.q8 === 3) {
+        recommendations.push(
+          createAlertItem(
+            "🔒",
+            "建立投資防呆機制",
+            "建議設定自動扣款、單一標的投資上限、再平衡週期與預先定義的停損／停利規則。",
+            "yellow"
+          )
+        );
+      } else {
+        recommendations.push(
+          createAlertItem(
+            "📅",
+            "持續執行長期計畫",
+            "建議以固定頻率檢視投資組合，避免因短期新聞或市場情緒頻繁改變策略。",
+            "green"
+          )
+        );
+      }
+
+      container.innerHTML = recommendations.join("");
+    }
+
+    function updateProgress() {
+      const answers = getAllAnswers();
+      const completed = questionNames.filter(name => answers[name] !== null).length;
+      const percentage = completed * 10;
+
+      document.getElementById("progressFill").style.width = `${percentage}%`;
+      setText(
+        "progressText",
+        completed === 0
+          ? "尚未完成任何題目"
+          : `已完成 ${completed} / 10 題`
+      );
+    }
+
+    function resetProfile() {
+      document.getElementById("profilingForm").reset();
+      document.getElementById("resultsSection").classList.add("hidden");
+      document.getElementById("formMessage").classList.add("hidden");
+      updateProgress();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.addEventListener("change", updateProgress);
+      });
+
+      document.getElementById("profilingForm").addEventListener("submit", event => {
+        event.preventDefault();
+
+        const message = document.getElementById("formMessage");
+        const answers = getAllAnswers();
+        const incompleteQuestions = questionNames.filter(name => answers[name] === null);
+
+        if (incompleteQuestions.length > 0) {
+          message.textContent = `請完成所有問卷題目後再進行分析，尚有 ${incompleteQuestions.length} 題未完成。`;
+          message.classList.remove("hidden");
+
+          const firstIncomplete = document.querySelector(
+            `input[name="${incompleteQuestions[0]}"]`
+          );
+
+          if (firstIncomplete) {
+            firstIncomplete.closest(".question-card").scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          }
+
+          return;
+        }
+
+        message.classList.add("hidden");
+
+        const profile = calculateProfile(answers);
+
+        renderSummary(profile);
+        renderTrafficLight(profile);
+        renderRadarChart(profile);
+        renderAllocationChart(profile);
+        renderBehavioralAlerts(profile);
+        renderRecommendations(profile);
+
+        const resultsSection = document.getElementById("resultsSection");
+        resultsSection.classList.remove("hidden");
+
+        setTimeout(() => {
+          resultsSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }, 100);
+      });
+
+      document.getElementById("resetButton").addEventListener("click", resetProfile);
+
+      updateProgress();
+    });
+  </script>
+</body>
+</html>

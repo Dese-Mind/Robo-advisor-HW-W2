@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>長庚大學 數位金融科技系 - 動態數位投資者輪廓系統</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: "#0B1F3A",
+            teal: "#14B8A6",
+            cyan: "#22D3EE",
+            mist: "#F4F8FB",
+            ink: "#14213D"
+          },
+          boxShadow: {
+            soft: "0 18px 45px rgba(11, 31, 58, 0.08)"
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: #14213d;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(20, 184, 166, 0.1), transparent 28%),
+        #f4f8fb;
+      font-family:
+        Inter,
+        "Noto Sans TC",
+        "PingFang TC",
+        "Microsoft JhengHei",
+        system-ui,
+        sans-serif;
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at 88% 15%, rgba(34, 211, 238, 0.18), transparent 24%),
+        linear-gradient(135deg, #081a31, #12375c);
+    }
+
+    .card {
+      border: 1px solid rgba(11, 31, 58, 0.07);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 18px 45px rgba(11, 31, 58, 0.07);
+    }
+
+    .question-card {
+      border: 1px solid #e5edf2;
+      border-radius: 18px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .question-card:focus-within {
+      border-color: rgba(20, 184, 166, 0.6);
+      box-shadow: 0 9px 26px rgba(20, 184, 166, 0.08);
+    }
+
+    .input-field {
+      width: 100%;
+      border: 1px solid #dce5ec;
+      border-radius: 13px;
+      background: #fbfdfe;
+      padding: 12px 14px;
+      color: #14213d;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .input-field:focus {
+      border-color: #14b8a6;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+    }
+
+    .textarea-field {
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.8;
+    }
+
+    .section-number {
+      display: flex;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: 15px;
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .chart-box {
+      position: relative;
+      width: 100%;
+      height: 360px;
+    }
+
+    .status-red {
+      border-color: #fecaca;
+      background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+    }
+
+    .status-yellow {
+      border-color: #fde68a;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    }
+
+    .status-green {
+      border-color: #a7f3d0;
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      border-radius: 50%;
+    }
+
+    .dot-red {
+      background: #ef4444;
+      box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.14);
+    }
+
+    .dot-yellow {
+      background: #f59e0b;
+      box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.14);
+    }
+
+    .dot-green {
+      background: #10b981;
+      box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.14);
+    }
+
+    .feedback-card {
+      min-height: 180px;
+      border-radius: 19px;
+      padding: 22px;
+    }
+
+    .feedback-emotion {
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    }
+
+    .feedback-alert {
+      border: 1px solid #fde68a;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    }
+
+    .feedback-advice {
+      border: 1px solid #a7f3d0;
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    }
+
+    .alert-item {
+      border-radius: 16px;
+      padding: 15px;
+    }
+
+    .alert-red {
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+    }
+
+    .alert-yellow {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+    }
+
+    .alert-blue {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+    }
+
+    .alert-green {
+      border: 1px solid #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.45s ease both;
+    }
+
+    .spin {
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .chart-box {
+        height: 290px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="hero text-white">
+    <div class="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <div class="mb-4 flex flex-wrap items-center gap-2 text-sm font-semibold tracking-wide text-teal-200">
+            <span class="rounded-full border border-teal-300/30 bg-teal-300/10 px-3 py-1">
+              長庚大學
+            </span>
+            <span class="text-slate-400">／</span>
+            <span>數位金融科技系</span>
+          </div>
+
+          <p class="text-xs font-bold uppercase tracking-[0.25em] text-cyan-200">
+            Dynamic Digital Investor Profiling System
+          </p>
+
+          <h1 class="mt-3 text-3xl font-black tracking-tight sm:text-5xl">
+            動態數位投資者輪廓系統
+          </h1>
+
+          <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+            結合傳統風險評估、財務承載力與 AI 行為金融語意分析，
+            建立個人化的動態投資人風險圖像。
+          </p>
+        </div>
+
+        <!-- API 設定 -->
+        <div class="w-full rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur lg:w-[440px]">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-widest text-slate-300">
+                API 設定
+              </p>
+              <p class="mt-1 font-bold text-white">AI 語意分析連線</p>
+            </div>
+
+            <span id="apiStatus" class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300">
+              尚未設定
+            </span>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            <input
+              id="apiBaseUrl"
+              type="text"
+              autocomplete="off"
+              class="w-full rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-sm text-white outline-none placeholder:text-slate-400 focus:border-teal-300 focus:ring-2 focus:ring-teal-300/30"
+              placeholder="API Base URL，例如：https://api.yourschool.edu.tw/v1/chat/completions"
+            />
+
+            <input
+              id="modelName"
+              type="text"
+              autocomplete="off"
+              value="gpt-5.6-luna"
+              class="w-full rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-sm text-white outline-none placeholder:text-slate-400 focus:border-teal-300 focus:ring-2 focus:ring-teal-300/30"
+              placeholder="模型名稱，例如：gpt-5.6-luna"
+            />
+
+            <input
+              id="apiKey"
+              type="password"
+              autocomplete="off"
+              class="w-full rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-sm text-white outline-none placeholder:text-slate-400 focus:border-teal-300 focus:ring-2 focus:ring-teal-300/30"
+              placeholder="API Key"
+            />
+
+            <button
+              id="saveApiSettings"
+              type="button"
+              class="w-full rounded-xl bg-teal-400 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-teal-300"
+            >
+              儲存設定
+            </button>
+          </div>
+
+          <p class="mt-3 text-xs leading-5 text-slate-300">
+            設定會暫存於目前瀏覽器分頁的 sessionStorage。正式環境建議透過後端 Proxy 保護 API Key。
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mb-8 grid gap-6 lg:grid-cols-3">
+      <div class="card p-6 lg:col-span-2">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-2xl">
+            🧭
+          </div>
+
+          <div>
+            <p class="text-xs font-black uppercase tracking-widest text-teal-600">
+              三階段投資人輪廓分析
+            </p>
+
+            <h2 class="mt-1 text-2xl font-black text-navy">
+              請完成您的投資者輪廓問卷
+            </h2>
+
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+              客觀條件由本地規則引擎計算；心理問答將送至您設定的 OpenAI 或相容本地模型 API。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card flex items-center gap-4 p-6">
+        <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
+          🔒
+        </div>
+
+        <div>
+          <p class="font-bold text-navy">連線提示</p>
+          <p class="mt-1 text-xs leading-5 text-slate-500">
+            若發生 CORS 錯誤，請透過 Live Server 或學校平台提供的網頁服務開啟本頁。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <form id="profilingForm" novalidate>
+      <!-- 第一部分 -->
+      <section class="card mb-8 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white px-5 py-6 sm:px-8">
+          <div class="flex items-start gap-4">
+            <div class="section-number bg-blue-600 shadow-lg shadow-blue-600/20">01</div>
+
+            <div>
+              <p class="text-xs font-black uppercase tracking-widest text-blue-600">
+                Traditional Risk Profiling
+              </p>
+
+              <h2 class="mt-1 text-2xl font-black text-navy">
+                傳統風險評估
+              </h2>
+
+              <p class="mt-2 text-sm text-slate-500">
+                建立您的基礎風險需求標籤。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-8 lg:grid-cols-2">
+          <div class="question-card p-5">
+            <label for="age" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                1 · 年齡
+              </span>
+              <span class="mt-1 block font-bold text-navy">您的年齡</span>
+            </label>
+
+            <div class="mt-4 flex items-center gap-3">
+              <input
+                id="age"
+                type="number"
+                min="18"
+                max="120"
+                required
+                class="input-field"
+                placeholder="例如：28"
+              />
+              <span class="font-semibold text-slate-500">歲</span>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="annualIncome" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                2 · 年收入與穩定性
+              </span>
+              <span class="mt-1 block font-bold text-navy">年收入</span>
+            </label>
+
+            <div class="mt-4 flex items-center gap-3">
+              <input
+                id="annualIncome"
+                type="number"
+                min="0"
+                step="0.1"
+                required
+                class="input-field"
+                placeholder="例如：100"
+              />
+              <span class="whitespace-nowrap font-semibold text-slate-500">萬元／年</span>
+            </div>
+
+            <select id="incomeStability" required class="input-field mt-3">
+              <option value="">請選擇收入來源</option>
+              <option value="固定薪資公教人員">固定薪資／公教人員</option>
+              <option value="業務接案為主">業務接案為主</option>
+              <option value="投資被動收入為主">投資被動收入為主</option>
+            </select>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="liquidAssets" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                3 · 資產結構
+              </span>
+              <span class="mt-1 block font-bold text-navy">流動資產</span>
+            </label>
+
+            <div class="mt-4 flex items-center gap-3">
+              <input
+                id="liquidAssets"
+                type="number"
+                min="0"
+                step="0.1"
+                required
+                class="input-field"
+                placeholder="現金／股票／基金"
+              />
+              <span class="whitespace-nowrap font-semibold text-slate-500">萬元</span>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="realEstate" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                3 · 資產結構
+              </span>
+              <span class="mt-1 block font-bold text-navy">不動產</span>
+            </label>
+
+            <div class="mt-4 flex items-center gap-3">
+              <input
+                id="realEstate"
+                type="number"
+                min="0"
+                step="0.1"
+                required
+                class="input-field"
+                placeholder="房屋／土地"
+              />
+              <span class="whitespace-nowrap font-semibold text-slate-500">萬元</span>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="financialGoal" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                4 · 投資目標
+              </span>
+              <span class="mt-1 block font-bold text-navy">您的投資目標</span>
+            </label>
+
+            <input
+              id="financialGoal"
+              type="text"
+              required
+              class="input-field mt-4"
+              placeholder="例如：退休準備、購屋頭期款"
+            />
+          </div>
+
+          <div class="question-card p-5">
+            <label for="horizonValue" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                5 · 預計投資期限
+              </span>
+              <span class="mt-1 block font-bold text-navy">投資期限</span>
+            </label>
+
+            <div class="mt-4 flex gap-3">
+              <input
+                id="horizonValue"
+                type="number"
+                min="1"
+                step="1"
+                required
+                class="input-field"
+                placeholder="例如：10"
+              />
+
+              <select id="horizonUnit" required class="input-field max-w-[125px]">
+                <option value="年">年</option>
+                <option value="月">月</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="question-card p-5 lg:col-span-2">
+            <label for="riskPreference" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-blue-600">
+                6 · 主觀風險偏好
+              </span>
+              <span class="mt-1 block font-bold text-navy">您認為自己屬於哪一類型？</span>
+            </label>
+
+            <select id="riskPreference" required class="input-field mt-4">
+              <option value="">請選擇風險偏好</option>
+              <option value="保守型">保守型</option>
+              <option value="穩健型">穩健型</option>
+              <option value="積極型">積極型</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 第二部分 -->
+      <section class="card mb-8 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-purple-50 to-white px-5 py-6 sm:px-8">
+          <div class="flex items-start gap-4">
+            <div class="section-number bg-purple-600 shadow-lg shadow-purple-600/20">02</div>
+
+            <div>
+              <p class="text-xs font-black uppercase tracking-widest text-purple-600">
+                Behavioral & Emotional Assessment
+              </p>
+
+              <h2 class="mt-1 text-2xl font-black text-navy">
+                行為與情緒評估
+              </h2>
+
+              <p class="mt-2 text-sm text-slate-500">
+                請用自然語句回答，AI 將分析五項行為金融心理維度。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-8">
+          <div class="question-card p-5">
+            <label for="behaviorQ1" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-purple-600">
+                Q1 · 損失規避與焦慮感
+              </span>
+
+              <span class="mt-1 block font-bold leading-7 text-navy">
+                如果您的投資組合在一個月內無預警下跌了 20%，您當下的內心感受是什麼？您會選擇立刻停損賣出，還是繼續抱著甚至加碼？為什麼？
+              </span>
+            </label>
+
+            <textarea
+              id="behaviorQ1"
+              required
+              class="input-field textarea-field mt-4"
+              placeholder="請描述您的真實感受與應對方式..."
+            ></textarea>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="behaviorQ2" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-purple-600">
+                Q2 · 從眾傾向與社會網絡
+              </span>
+
+              <span class="mt-1 block font-bold leading-7 text-navy">
+                在做投資決策時，是否有人在指導您或與您討論？如果看到朋友跟風買熱門 AI 股票賺了 30%，而您只賺 5%，您會考慮改變策略跟進嗎？
+              </span>
+            </label>
+
+            <textarea
+              id="behaviorQ2"
+              required
+              class="input-field textarea-field mt-4"
+              placeholder="請描述您通常如何面對他人的投資績效..."
+            ></textarea>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="behaviorQ3" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-purple-600">
+                Q3 · 過度自信與過往實績
+              </span>
+
+              <span class="mt-1 block font-bold leading-7 text-navy">
+                請簡述您過往的投資經驗與平均年化報酬率。您認為自己過去的績效是靠實力還是運氣？經歷過哪些市場大跌？
+              </span>
+            </label>
+
+            <textarea
+              id="behaviorQ3"
+              required
+              class="input-field textarea-field mt-4"
+              placeholder="請描述過往投資經驗、績效與市場大跌時的反應..."
+            ></textarea>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="behaviorQ4" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-purple-600">
+                Q4 · 自制力與計畫執行
+              </span>
+
+              <span class="mt-1 block font-bold leading-7 text-navy">
+                當您獲得一筆意外獎金時，您通常會優先選擇立即消費，還是嚴格按照長遠計畫投入投資？為什麼？
+              </span>
+            </label>
+
+            <textarea
+              id="behaviorQ4"
+              required
+              class="input-field textarea-field mt-4"
+              placeholder="請描述您處理意外收入的方式..."
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- 第三部分 -->
+      <section class="card mb-8 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-6 sm:px-8">
+          <div class="flex items-start gap-4">
+            <div class="section-number bg-emerald-600 shadow-lg shadow-emerald-600/20">03</div>
+
+            <div>
+              <p class="text-xs font-black uppercase tracking-widest text-emerald-600">
+                Financial Capacity & Hard Constraints
+              </p>
+
+              <h2 class="mt-1 text-2xl font-black text-navy">
+                財務條件與極限
+              </h2>
+
+              <p class="mt-2 text-sm text-slate-500">
+                作為投資風險決策矩陣的硬限制條件。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-8 lg:grid-cols-2">
+          <div class="question-card p-5">
+            <label for="monthlyExpenses" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">
+                1 · 每月固定支出
+              </span>
+              <span class="mt-1 block font-bold text-navy">每月估計固定支出</span>
+            </label>
+
+            <div class="mt-4 flex items-center gap-3">
+              <input
+                id="monthlyExpenses"
+                type="number"
+                min="0"
+                step="0.1"
+                required
+                class="input-field"
+                placeholder="例如：6"
+              />
+              <span class="whitespace-nowrap font-semibold text-slate-500">萬元／月</span>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="investmentMethod" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">
+                2 · 投入方式
+              </span>
+              <span class="mt-1 block font-bold text-navy">投資資金投入方式</span>
+            </label>
+
+            <select id="investmentMethod" required class="input-field mt-4">
+              <option value="">請選擇投入方式</option>
+              <option value="定期定額">定期定額</option>
+              <option value="單筆現金投入">單筆現金投入</option>
+              <option value="兩者皆有">兩者皆有</option>
+            </select>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="investablePercent" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">
+                3 · 可投資資金比例
+              </span>
+              <span class="mt-1 block font-bold text-navy">可投資資金佔淨資產比例</span>
+            </label>
+
+            <div class="mt-4 flex items-center gap-3">
+              <input
+                id="investablePercent"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                required
+                class="input-field"
+                placeholder="例如：40"
+              />
+              <span class="font-semibold text-slate-500">%</span>
+            </div>
+          </div>
+
+          <div class="question-card p-5">
+            <label for="debtStructure" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">
+                4 · 負債狀況與結構
+              </span>
+              <span class="mt-1 block font-bold text-navy">負債描述</span>
+            </label>
+
+            <input
+              id="debtStructure"
+              type="text"
+              required
+              class="input-field mt-4"
+              placeholder="例如：每月房貸3萬，無信貸"
+            />
+          </div>
+
+          <div class="question-card p-5 lg:col-span-2">
+            <label for="shortTermLiquidity" class="block">
+              <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">
+                5 · 短期流動性需求
+              </span>
+              <span class="mt-1 block font-bold text-navy">近期資金需求</span>
+            </label>
+
+            <input
+              id="shortTermLiquidity"
+              type="text"
+              required
+              class="input-field mt-4"
+              placeholder="例如：兩年後需一筆200萬結婚基金"
+            />
+          </div>
+        </div>
+      </section>
+
+      <div class="mb-10 flex flex-col items-center gap-3">
+        <button
+          id="analyzeButton"
+          type="submit"
+          class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-navy px-8 py-4 text-base font-black text-white shadow-xl shadow-navy/20 transition hover:-translate-y-0.5 hover:bg-slate-800 sm:w-auto"
+        >
+          <span id="analyzeText">分析我的投資輪廓</span>
+          <span id="analyzeIcon" class="text-xl">→</span>
+        </button>
+
+        <p id="formError" class="hidden text-center text-sm font-semibold text-red-600"></p>
+      </div>
+    </form>
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="hidden fade-in">
+      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-xs font-black uppercase tracking-widest text-teal-600">
+            Dynamic Investor Risk Profile
+          </p>
+
+          <h2 class="mt-1 text-3xl font-black text-navy">
+            動態投資人風險儀表板
+          </h2>
+
+          <p class="mt-2 text-sm text-slate-500">
+            以下結果整合本地財務硬限制與 AI 行為金融語意分析。
+          </p>
+        </div>
+
+        <button
+          id="resetButton"
+          type="button"
+          class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 transition hover:border-teal-400 hover:text-teal-600"
+        >
+          重新分析
+        </button>
+      </div>
+
+      <!-- 紅綠燈 -->
+      <div id="resultHeader" class="mb-8 rounded-3xl border p-6 sm:p-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex items-center gap-5">
+            <span id="resultDot" class="status-dot dot-green"></span>
+
+            <div>
+              <p class="text-xs font-black uppercase tracking-widest text-slate-500">
+                決策矩陣結果
+              </p>
+
+              <h3 id="resultStatus" class="mt-1 text-3xl font-black text-navy">
+                --
+              </h3>
+
+              <p id="resultSummary" class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+                --
+              </p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white/80 p-5 text-center shadow-sm">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">
+              最終投資人標籤
+            </p>
+
+            <p id="finalRiskLabel" class="mt-2 text-3xl font-black text-navy">
+              --
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 指標摘要 -->
+      <div class="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="card p-5">
+          <p class="text-xs font-black uppercase tracking-widest text-slate-500">
+            財務承載力
+          </p>
+
+          <p id="capacityLabel" class="mt-4 text-3xl font-black text-navy">--</p>
+          <p id="capacityNote" class="mt-2 text-xs leading-5 text-slate-500">--</p>
+        </div>
+
+        <div class="card p-5">
+          <p class="text-xs font-black uppercase tracking-widest text-slate-500">
+            基礎風險需求
+          </p>
+
+          <p id="baselineLabel" class="mt-4 text-3xl font-black text-navy">--</p>
+          <p id="baselineNote" class="mt-2 text-xs leading-5 text-slate-500">--</p>
+        </div>
+
+        <div class="card p-5">
+          <p class="text-xs font-black uppercase tracking-widest text-slate-500">
+            AI 心理狀態
+          </p>
+
+          <p id="behaviorLabel" class="mt-4 text-3xl font-black text-navy">--</p>
+          <p id="behaviorNote" class="mt-2 text-xs leading-5 text-slate-500">--</p>
+        </div>
+
+        <div class="card p-5">
+          <p class="text-xs font-black uppercase tracking-widest text-slate-500">
+            最終配置模式
+          </p>
+
+          <p id="allocationLabel" class="mt-4 text-3xl font-black text-navy">--</p>
+          <p id="allocationNote" class="mt-2 text-xs leading-5 text-slate-500">--</p>
+        </div>
+      </div>
+
+      <!-- AI 動態回饋卡片區 -->
+      <div class="mb-8">
+        <div class="mb-5">
+          <p class="text-xs font-black uppercase tracking-widest text-purple-600">
+            AI Dynamic Feedback
+          </p>
+
+          <h3 class="mt-1 text-2xl font-black text-navy">
+            AI 動態回饋卡片
+          </h3>
+
+          <p class="mt-2 text-sm text-slate-500">
+            根據四題開放式回答產生的即時行為金融回饋。
+          </p>
+        </div>
+
+        <div class="grid gap-5 lg:grid-cols-3">
+          <article class="feedback-card feedback-emotion">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🧠</span>
+              <h4 class="text-lg font-black text-blue-900">當下情緒狀態</h4>
+            </div>
+
+            <p id="emotionalState" class="mt-5 text-sm leading-7 text-slate-700">
+              --
+            </p>
+          </article>
+
+          <article class="feedback-card feedback-alert">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">⚠️</span>
+              <h4 class="text-lg font-black text-amber-900">行為提醒</h4>
+            </div>
+
+            <p id="behavioralAlert" class="mt-5 text-sm leading-7 text-slate-700">
+              --
+            </p>
+          </article>
+
+          <article class="feedback-card feedback-advice">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🎯</span>
+              <h4 class="text-lg font-black text-emerald-900">專屬即時建議</h4>
+            </div>
+
+            <p id="personalizedAdvice" class="mt-5 text-sm leading-7 text-slate-700">
+              --
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <!-- 圖表 -->
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div class="card p-5 sm:p-7">
+          <p class="text-xs font-black uppercase tracking-widest text-purple-600">
+            AI 行為心理分析
+          </p>
+
+          <h3 class="mt-1 text-xl font-black text-navy">
+            五大心理維度雷達圖
+          </h3>
+
+          <div class="chart-box mt-5">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card p-5 sm:p-7">
+          <p class="text-xs font-black uppercase tracking-widest text-teal-600">
+            Modern Portfolio Theory
+          </p>
+
+          <h3 class="mt-1 text-xl font-black text-navy">
+            MPT 資產配置建議
+          </h3>
+
+          <p id="allocationDescription" class="mt-1 text-sm text-slate-500">
+            --
+          </p>
+
+          <div class="chart-box mt-5">
+            <canvas id="allocationChart"></canvas>
+          </div>
+
+          <div id="allocationLegend" class="mt-4 grid grid-cols-2 gap-3 text-center"></div>
+        </div>
+      </div>
+
+      <!-- 額外建議 -->
+      <div class="mt-8 grid gap-8 lg:grid-cols-2">
+        <div class="card p-5 sm:p-7">
+          <p class="text-xs font-black uppercase tracking-widest text-orange-600">
+            Behavioral Alerts
+          </p>
+
+          <h3 class="mt-1 text-xl font-black text-navy">
+            行為提醒小卡
+          </h3>
+
+          <div id="behaviorAlerts" class="mt-5 space-y-3"></div>
+        </div>
+
+        <div class="card p-5 sm:p-7">
+          <p class="text-xs font-black uppercase tracking-widest text-blue-600">
+            Actionable Guidance
+          </p>
+
+          <h3 class="mt-1 text-xl font-black text-navy">
+            投資執行建議
+          </h3>
+
+          <div id="recommendations" class="mt-5 space-y-3"></div>
+        </div>
+      </div>
+
+      <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-xs leading-6 text-slate-500">
+        <strong class="text-slate-700">重要提醒：</strong>
+        本系統為金融科技與人工智慧分析示範工具，結果僅供教育、研究與風險辨識用途，
+        不構成投資建議、投資邀約或報酬保證。
+      </div>
+    </section>
+  </main>
+
+  <footer class="mt-10 border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 text-center text-xs text-slate-400 sm:px-6 lg:px-8">
+      長庚大學 數位金融科技系 · 動態數位投資者輪廓系統
+    </div>
+  </footer>
+
+  <script>
+    let radarChart = null;
+    let allocationChart = null;
+
+    const STORAGE_KEYS = {
+      baseUrl: "cgu_dynamic_investor_api_base_url",
+      modelName: "cgu_dynamic_investor_model_name",
+      apiKey: "cgu_dynamic_investor_api_key"
+    };
+
+    const DEFAULT_MODEL = "gpt-5.6-luna";
+
+    const statusInfo = {
+      red: {
+        title: "紅燈 · 高風險落差",
+        summary: "基礎風險需求與客觀財務承載力出現明顯落差，系統已啟動強制降級保護。",
+        panelClass: "status-red",
+        dotClass: "dot-red",
+        message: "建議優先改善負債、流動性或資金投入結構。"
+      },
+      yellow: {
+        title: "黃燈 · 需要行為控管",
+        summary: "財務條件或心理指標仍存在風險因素，建議增加分散化與投資紀律。",
+        panelClass: "status-yellow",
+        dotClass: "dot-yellow",
+        message: "系統已將資產配置降級為穩健型。"
+      },
+      green: {
+        title: "綠燈 · 整體條件吻合",
+        summary: "基礎風險需求、財務承載力與 AI 心理評估整體符合。",
+        panelClass: "status-green",
+        dotClass: "dot-green",
+        message: "可依既定投資計畫執行，並定期檢視資產配置。"
+      }
+    };
+
+    const allocationMap = {
+      Conservative: {
+        label: "保守型",
+        stocks: 20,
+        bonds: 80,
+        colors: ["#0B1F3A", "#CBD5E1"]
+      },
+      Moderate: {
+        label: "穩健型",
+        stocks: 50,
+        bonds: 50,
+        colors: ["#0B1F3A", "#14B8A6"]
+      },
+      Aggressive: {
+        label: "積極型",
+        stocks: 80,
+        bonds: 20,
+        colors: ["#0B1F3A", "#F59E0B"]
+      }
+    };
+
+    function getApiSettings() {
+      return {
+        baseUrl: sessionStorage.getItem(STORAGE_KEYS.baseUrl) || "",
+        modelName:
+          sessionStorage.getItem(STORAGE_KEYS.modelName) ||
+          DEFAULT_MODEL,
+        apiKey: sessionStorage.getItem(STORAGE_KEYS.apiKey) || ""
+      };
+    }
+
+    function normalizeEndpoint(url) {
+      const trimmed = url.trim().replace(/\/+$/, "");
+
+      if (
+        trimmed.endsWith("/chat/completions") ||
+        trimmed.endsWith("/completions")
+      ) {
+        return trimmed;
+      }
+
+      if (trimmed.endsWith("/v1")) {
+        return `${trimmed}/chat/completions`;
+      }
+
+      return trimmed;
+    }
+
+    function saveApiSettings() {
+      const baseUrl = document.getElementById("apiBaseUrl").value.trim();
+      const modelName = document.getElementById("modelName").value.trim();
+      const apiKeyInput = document.getElementById("apiKey");
+      const previousSettings = getApiSettings();
+
+      const apiKey = apiKeyInput.value.trim() || previousSettings.apiKey;
+
+      if (!baseUrl) {
+        alert("請輸入 API Base URL。");
+        document.getElementById("apiBaseUrl").focus();
+        return;
+      }
+
+      if (!modelName) {
+        alert("請輸入模型名稱。");
+        document.getElementById("modelName").focus();
+        return;
+      }
+
+      if (!apiKey) {
+        alert("請輸入 API Key。");
+        apiKeyInput.focus();
+        return;
+      }
+
+      sessionStorage.setItem(STORAGE_KEYS.baseUrl, baseUrl);
+      sessionStorage.setItem(STORAGE_KEYS.modelName, modelName);
+      sessionStorage.setItem(STORAGE_KEYS.apiKey, apiKey);
+
+      apiKeyInput.value = "";
+
+      const status = document.getElementById("apiStatus");
+      status.textContent = "設定已儲存";
+      status.className =
+        "rounded-full bg-emerald-300/20 px-3 py-1 text-xs font-bold text-emerald-200";
+
+      alert("API 設定已儲存於目前瀏覽器分頁。");
+    }
+
+    function containsAny(text, keywords) {
+      return keywords.some(keyword => text.includes(keyword));
+    }
+
+    function getHorizonInYears(data) {
+      return data.horizonUnit === "月"
+        ? data.horizonValue / 12
+        : data.horizonValue;
+    }
+
+    function calculateCapacity(data) {
+      const horizonYears = getHorizonInYears(data);
+      const debtText = data.debtStructure.toLowerCase();
+      const liquidityText = data.shortTermLiquidity.toLowerCase();
+
+      const highDebt =
+        containsAny(debtText, [
+          "高額",
+          "信貸",
+          "卡債",
+          "高利貸",
+          "高利",
+          "壓力大",
+          "繳不起",
+          "債務沉重",
+          "負債過高"
+        ]);
+
+      const noLiquidityNeed = containsAny(liquidityText, [
+        "無需求",
+        "沒有需求",
+        "不需要",
+        "無短期需求",
+        "沒有短期需求"
+      ]);
+
+      const recentLiquidityNeed =
+        !noLiquidityNeed &&
+        containsAny(liquidityText, [
+          "需要",
+          "結婚",
+          "購屋",
+          "買房",
+          "頭期",
+          "醫療",
+          "教育",
+          "換屋",
+          "明年",
+          "近期",
+          "兩年",
+          "一年",
+          "半年",
+          "支出",
+          "用錢"
+        ]);
+
+      const concentratedSingleInvestment =
+        data.investmentMethod === "單筆現金投入" &&
+        data.investablePercent >= 50;
+
+      const hardLimit =
+        horizonYears < 5 ||
+        highDebt ||
+        recentLiquidityNeed ||
+        concentratedSingleInvestment;
+
+      if (hardLimit) {
+        const reasons = [];
+
+        if (horizonYears < 5) reasons.push("投資期限低於 5 年");
+        if (highDebt) reasons.push("偵測到高額或高壓負債");
+        if (recentLiquidityNeed) reasons.push("存在近期流動性需求");
+        if (concentratedSingleInvestment) reasons.push("單筆投入比例偏高");
+
+        return {
+          score: 30,
+          level: "LOW",
+          note: `硬限制：${reasons.join("、")}。`
+        };
+      }
+
+      const strongCapacity =
+        horizonYears >= 10 &&
+        data.investablePercent <= 60 &&
+        data.investmentMethod !== "單筆現金投入" &&
+        !highDebt;
+
+      if (strongCapacity) {
+        return {
+          score: 90,
+          level: "HIGH",
+          note: "投資期限長、投入比例適中且未偵測到高額負債。"
+        };
+      }
+
+      return {
+        score: 60,
+        level: "MODERATE",
+        note: "財務條件處於中間區間，建議保留足夠緊急預備金。"
+      };
+    }
+
+    function calculateBaselineRisk(data) {
+      const goal = data.financialGoal.toLowerCase();
+
+      const aggressiveGoal =
+        containsAny(goal, [
+          "翻倍",
+          "高報酬",
+          "高收益",
+          "積極成長",
+          "快速增值",
+          "資產增值",
+          "擊敗市場"
+        ]) ||
+        data.riskPreference === "積極型";
+
+      const conservativeGoal =
+        containsAny(goal, [
+          "退休",
+          "購屋",
+          "頭期",
+          "保本",
+          "穩定",
+          "領息",
+          "現金流",
+          "低風險",
+          "安全"
+        ]) ||
+        data.riskPreference === "保守型";
+
+      if (aggressiveGoal && !conservativeGoal) {
+        return {
+          key: "Aggressive",
+          label: "積極型",
+          note: "投資目標或主觀風險偏好偏向資產成長。"
+        };
+      }
+
+      if (conservativeGoal && !aggressiveGoal) {
+        return {
+          key: "Conservative",
+          label: "保守型",
+          note: "投資目標或主觀風險偏好偏向資本穩定。"
+        };
+      }
+
+      return {
+        key: "Moderate",
+        label: "穩健型",
+        note: "投資目標與主觀風險偏好呈現平衡。"
+      };
+    }
+
+    function normalizeScore(value) {
+      const number = Number(value);
+
+      if (!Number.isFinite(number)) {
+        return 50;
+      }
+
+      return Math.max(0, Math.min(100, Math.round(number)));
+    }
+
+    function cleanJsonText(content) {
+      let text = String(content || "").trim();
+
+      if (text.startsWith("```")) {
+        text = text
+          .replace(/^```json/i, "")
+          .replace(/^```/i, "")
+          .replace(/```$/i, "")
+          .trim();
+      }
+
+      const firstBrace = text.indexOf("{");
+      const lastBrace = text.lastIndexOf("}");
+
+      if (firstBrace >= 0 && lastBrace > firstBrace) {
+        text = text.slice(firstBrace, lastBrace + 1);
+      }
+
+      return text;
+    }
+
+    function extractMessageContent(message) {
+      if (typeof message === "string") {
+        return message;
+      }
+
+      if (Array.isArray(message)) {
+        return message
+          .map(item => item?.text || item?.content || "")
+          .join("");
+      }
+
+      return "";
+    }
+
+    function validateAiResult(result) {
+      const scores = result?.radar_scores || {};
+      const feedback = result?.feedback || {};
+
+      return {
+        radar_scores: {
+          calmness: normalizeScore(scores.calmness),
+          risk_acceptance: normalizeScore(scores.risk_acceptance),
+          independent_thinking: normalizeScore(scores.independent_thinking),
+          rational_confidence: normalizeScore(scores.rational_confidence),
+          discipline: normalizeScore(scores.discipline)
+        },
+        feedback: {
+          current_emotional_state:
+            String(
+              feedback.current_emotional_state ||
+              "目前尚未取得有效的情緒狀態分析。"
+            ).trim(),
+
+          behavioral_alert:
+            String(
+              feedback.behavioral_alert ||
+              "目前尚未取得有效的行為提醒。"
+            ).trim(),
+
+          personalized_advice:
+            String(
+              feedback.personalized_advice ||
+              "建議維持分散化投資並定期檢視資產配置。"
+            ).trim()
+        }
+      };
+    }
+
+    async function analyzeWithAI(data, settings) {
+      const systemPrompt = `
+你是一位專業的行為金融學專家。
+請分析使用者提供的四個開放式回答，並嚴格回傳 JSON，不要加入 Markdown、解釋文字或 JSON 以外的內容。
+
+請回傳以下結構：
+{
+  "radar_scores": {
+    "calmness": 0,
+    "risk_acceptance": 0,
+    "independent_thinking": 0,
+    "rational_confidence": 0,
+    "discipline": 0
+  },
+  "feedback": {
+    "current_emotional_state": "",
+    "behavioral_alert": "",
+    "personalized_advice": ""
+  }
+}
+
+評分規則：
+1. calmness：抗焦慮沉著度，100 代表極度冷靜，0 代表恐慌賣出。
+2. risk_acceptance：損失承受力，100 代表能承擔合理風險，0 代表極度損失規避。
+3. independent_thinking：獨立判斷力與反從眾，100 代表不盲從，0 代表極度跟風。
+4. rational_confidence：適度自信度，100 代表客觀，過度自信、歐印、All-in 應大幅扣分。
+5. discipline：紀律與自制力，100 代表能遵守長期計畫，0 代表衝動消費或缺乏執行力。
+
+current_emotional_state 請用繁體中文描述使用者當下情緒狀態，約 50 字。
+behavioral_alert 請針對分數最低的心理維度提出行為提醒，約 50 字。
+personalized_advice 請結合使用者的投資期限、投入方式與心理狀態提出個人化即時建議，約 80 字。
+
+所有分數必須是 0 到 100 的數字。
+      `.trim();
+
+      const userPrompt = `
+以下是使用者的四個行為與情緒回答：
+
+Q1 損失規避與焦慮感：
+${data.behaviorQ1}
+
+Q2 從眾傾向與社會網絡：
+${data.behaviorQ2}
+
+Q3 過度自信與過往實績：
+${data.behaviorQ3}
+
+Q4 自制力與計畫執行：
+${data.behaviorQ4}
+
+請只根據上述回答分析，不要臆測使用者沒有提供的資訊。
+      `.trim();
+
+      let response;
+
+      try {
+        response = await fetch(normalizeEndpoint(settings.baseUrl), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${settings.apiKey}`
+          },
+          body: JSON.stringify({
+            model: settings.modelName,
+            messages: [
+              {
+                role: "system",
+                content: systemPrompt
+              },
+              {
+                role: "user",
+                content: userPrompt
+              }
+            ]
+          })
+        });
+      } catch (error) {
+        console.error("API 連線錯誤：", error);
+
+        alert(
+          "API 連線失敗，請確認 API Base URL 是否正確，或透過 Live Server 開啟網頁以避免 CORS 限制。"
+        );
+
+        const connectionError = new Error("API_CONNECTION_FAILED");
+        connectionError.isConnectionError = true;
+        throw connectionError;
+      }
+
+      const responseText = await response.text();
+
+      let responseData;
+
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = {};
+      }
+
+      if (!response.ok) {
+        const errorMessage =
+          responseData?.error?.message ||
+          responseData?.message ||
+          responseText ||
+          `API 回應錯誤，HTTP ${response.status}`;
+
+        throw new Error(errorMessage);
+      }
+
+      const content = extractMessageContent(
+        responseData?.choices?.[0]?.message?.content ||
+        responseData?.choices?.[0]?.text ||
+        responseData?.output_text ||
+        ""
+      );
+
+      if (!content) {
+        throw new Error("API 未回傳有效的分析內容。");
+      }
+
+      let parsed;
+
+      try {
+        parsed = JSON.parse(cleanJsonText(content));
+      } catch {
+        throw new Error("AI 回傳內容不是有效的 JSON 格式。");
+      }
+
+      return validateAiResult(parsed);
+    }
+
+    function calculateDecision(profile) {
+      const scores = profile.ai.radar_scores;
+      const scoreValues = Object.values(scores);
+
+      const average =
+        scoreValues.reduce((sum, value) => sum + value, 0) /
+        scoreValues.length;
+
+      const hasVeryLowScore = scoreValues.some(value => value < 30);
+
+      if (
+        profile.baseline.key === "Aggressive" &&
+        profile.capacity.level === "LOW"
+      ) {
+        return {
+          status: "red",
+          average
+        };
+      }
+
+      if (
+        profile.capacity.level === "LOW" ||
+        average < 50 ||
+        hasVeryLowScore
+      ) {
+        return {
+          status: "yellow",
+          average
+        };
+      }
+
+      return {
+        status: "green",
+        average
+      };
+    }
+
+    function getFinalRisk(profile) {
+      if (profile.decision.status === "red") {
+        return "Conservative";
+      }
+
+      if (profile.decision.status === "yellow") {
+        return "Moderate";
+      }
+
+      return profile.baseline.key;
+    }
+
+    function createAlertItem(icon, title, body, tone = "blue") {
+      return `
+        <div class="alert-item alert-${tone}">
+          <div class="flex gap-3">
+            <span class="text-xl">${icon}</span>
+            <div>
+              <p class="font-bold text-slate-800">${title}</p>
+              <p class="mt-1 text-sm leading-6 text-slate-600">${body}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSummary(profile) {
+      const info = statusInfo[profile.decision.status];
+      const finalRisk = getFinalRisk(profile);
+
+      document.getElementById("resultHeader").className =
+        `mb-8 rounded-3xl border p-6 sm:p-8 ${info.panelClass}`;
+
+      document.getElementById("resultDot").className =
+        `status-dot ${info.dotClass}`;
+
+      document.getElementById("resultStatus").textContent = info.title;
+      document.getElementById("resultSummary").textContent =
+        `${info.summary} ${info.message}`;
+
+      document.getElementById("finalRiskLabel").textContent =
+        `${allocationMap[finalRisk].label}${profile.decision.status === "green" ? "" : "（降級）"}`;
+
+      document.getElementById("capacityLabel").textContent =
+        profile.capacity.level;
+
+      document.getElementById("capacityNote").textContent =
+        profile.capacity.note;
+
+      document.getElementById("baselineLabel").textContent =
+        profile.baseline.label;
+
+      document.getElementById("baselineNote").textContent =
+        profile.baseline.note;
+
+      document.getElementById("behaviorLabel").textContent =
+        `${Math.round(profile.decision.average)} / 100`;
+
+      document.getElementById("behaviorNote").textContent =
+        "AI 五項心理維度平均";
+
+      document.getElementById("allocationLabel").textContent =
+        allocationMap[finalRisk].label;
+
+      document.getElementById("allocationNote").textContent =
+        profile.decision.status === "green"
+          ? "依基礎風險需求配置"
+          : "已依決策矩陣降級";
+    }
+
+    function renderFeedback(profile) {
+      document.getElementById("emotionalState").textContent =
+        profile.ai.feedback.current_emotional_state;
+
+      document.getElementById("behavioralAlert").textContent =
+        profile.ai.feedback.behavioral_alert;
+
+      document.getElementById("personalizedAdvice").textContent =
+        profile.ai.feedback.personalized_advice;
+    }
+
+    function renderRadar(profile) {
+      if (radarChart) {
+        radarChart.destroy();
+      }
+
+      const scores = profile.ai.radar_scores;
+
+      radarChart = new Chart(
+        document.getElementById("radarChart"),
+        {
+          type: "radar",
+          data: {
+            labels: [
+              "抗焦慮沉著度",
+              "損失承受力",
+              "獨立判斷力",
+              "適度自信度",
+              "紀律自制力"
+            ],
+            datasets: [
+              {
+                label: "AI 心理分析",
+                data: [
+                  scores.calmness,
+                  scores.risk_acceptance,
+                  scores.independent_thinking,
+                  scores.rational_confidence,
+                  scores.discipline
+                ],
+                fill: true,
+                backgroundColor: "rgba(124, 58, 237, 0.18)",
+                borderColor: "#7C3AED",
+                borderWidth: 3,
+                pointBackgroundColor: "#0B1F3A",
+                pointBorderColor: "#FFFFFF",
+                pointBorderWidth: 2,
+                pointRadius: 5
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  stepSize: 20,
+                  color: "#94A3B8",
+                  backdropColor: "transparent"
+                },
+                grid: {
+                  color: "rgba(148, 163, 184, 0.25)"
+                },
+                angleLines: {
+                  color: "rgba(148, 163, 184, 0.25)"
+                },
+                pointLabels: {
+                  color: "#334155",
+                  font: {
+                    size: 12,
+                    weight: "600"
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: context => `${context.raw} / 100`
+                }
+              }
+            }
+          }
+        }
+      );
+    }
+
+    function renderAllocation(profile) {
+      if (allocationChart) {
+        allocationChart.destroy();
+      }
+
+      const finalRisk = getFinalRisk(profile);
+      const allocation = allocationMap[finalRisk];
+
+      document.getElementById("allocationDescription").textContent =
+        `${allocation.label}：股票 ETF ${allocation.stocks}%、債券 ETF ${allocation.bonds}%。`;
+
+      allocationChart = new Chart(
+        document.getElementById("allocationChart"),
+        {
+          type: "doughnut",
+          data: {
+            labels: ["股票 ETF", "債券 ETF"],
+            datasets: [
+              {
+                data: [
+                  allocation.stocks,
+                  allocation.bonds
+                ],
+                backgroundColor: allocation.colors,
+                borderColor: "#FFFFFF",
+                borderWidth: 5,
+                hoverOffset: 8
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "66%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  usePointStyle: true,
+                  pointStyle: "circle",
+                  padding: 18,
+                  color: "#334155",
+                  font: {
+                    size: 12,
+                    weight: "600"
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: context => `${context.label}: ${context.raw}%`
+                }
+              }
+            }
+          }
+        }
+      );
+
+      document.getElementById("allocationLegend").innerHTML = `
+        <div class="rounded-xl bg-slate-50 p-3">
+          <p class="text-lg font-black text-navy">${allocation.stocks}%</p>
+          <p class="mt-1 text-xs text-slate-500">股票 ETF</p>
+        </div>
+
+        <div class="rounded-xl bg-teal-50 p-3">
+          <p class="text-lg font-black text-teal-700">${allocation.bonds}%</p>
+          <p class="mt-1 text-xs text-slate-500">債券 ETF</p>
+        </div>
+      `;
+    }
+
+    function renderBehaviorAlerts(profile) {
+      const scores = profile.ai.radar_scores;
+
+      const scoreItems = [
+        {
+          key: "calmness",
+          value: scores.calmness,
+          icon: "🌪️",
+          title: "抗焦慮沉著度",
+          body: "市場波動時可能容易受到情緒影響，建議預先設定再平衡規則。",
+          tone: "red"
+        },
+        {
+          key: "risk_acceptance",
+          value: scores.risk_acceptance,
+          icon: "🛡️",
+          title: "損失承受力",
+          body: "建議確認投資比例符合真實損失承受能力，避免過度集中高波動資產。",
+          tone: "yellow"
+        },
+        {
+          key: "independent_thinking",
+          value: scores.independent_thinking,
+          icon: "👥",
+          title: "獨立判斷力",
+          body: "避免因社群熱門話題或他人績效，偏離原本的長期投資計畫。",
+          tone: "blue"
+        },
+        {
+          key: "rational_confidence",
+          value: scores.rational_confidence,
+          icon: "⚠️",
+          title: "適度自信度",
+          body: "避免因短期績效良好而過度集中投入或進行 All-in 操作。",
+          tone: "yellow"
+        },
+        {
+          key: "discipline",
+          value: scores.discipline,
+          icon: "📅",
+          title: "紀律自制力",
+          body: "建議透過自動扣款與固定檢視週期，維持長期執行品質。",
+          tone: "green"
+        }
+      ];
+
+      const lowestItems = [...scoreItems]
+        .sort((a, b) => a.value - b.value)
+        .slice(0, 3);
+
+      document.getElementById("behaviorAlerts").innerHTML =
+        lowestItems
+          .map(item =>
+            createAlertItem(
+              item.icon,
+              item.title,
+              item.body,
+              item.tone
+            )
+          )
+          .join("");
+    }
+
+    function renderRecommendations(profile) {
+      const recommendations = [];
+      const finalRisk = getFinalRisk(profile);
+
+      if (profile.decision.status === "red") {
+        recommendations.push(
+          createAlertItem(
+            "🔴",
+            "優先改善財務極限",
+            "建議先降低高額負債、補足緊急預備金或降低單筆投入比例，再逐步增加風險性資產。",
+            "red"
+          )
+        );
+      }
+
+      if (profile.decision.status === "yellow") {
+        recommendations.push(
+          createAlertItem(
+            "🟡",
+            "建立投資防呆機制",
+            "建議使用定期定額、分散化 ETF、固定再平衡與單一標的投資上限，降低情緒性決策。",
+            "yellow"
+          )
+        );
+      }
+
+      if (profile.decision.status === "green") {
+        recommendations.push(
+          createAlertItem(
+            "🟢",
+            "維持長期投資計畫",
+            "目前客觀條件與心理狀態整體吻合，建議維持分散化配置並定期檢視。",
+            "green"
+          )
+        );
+      }
+
+      if (finalRisk === "Aggressive") {
+        recommendations.push(
+          createAlertItem(
+            "📈",
+            "積極型配置",
+            "可將股票 ETF 作為成長核心，但仍需透過債券 ETF 與定期再平衡控制波動。",
+            "blue"
+          )
+        );
+      } else if (finalRisk === "Moderate") {
+        recommendations.push(
+          createAlertItem(
+            "⚖️",
+            "穩健型配置",
+            "建議維持股票與債券均衡，採定期投入與週期性再平衡，避免追逐短期熱門標的。",
+            "blue"
+          )
+        );
+      } else {
+        recommendations.push(
+          createAlertItem(
+            "🏦",
+            "保守型配置",
+            "建議以債券 ETF 作為穩定核心，控制股票 ETF 比例，並保留足夠的短期流動性。",
+            "blue"
+          )
+        );
+      }
+
+      document.getElementById("recommendations").innerHTML =
+        recommendations.join("");
+    }
+
+    function getFormData() {
+      return {
+        age: Number(document.getElementById("age").value),
+        annualIncome: Number(document.getElementById("annualIncome").value),
+        incomeStability: document.getElementById("incomeStability").value,
+        liquidAssets: Number(document.getElementById("liquidAssets").value),
+        realEstate: Number(document.getElementById("realEstate").value),
+        financialGoal: document.getElementById("financialGoal").value.trim(),
+        horizonValue: Number(document.getElementById("horizonValue").value),
+        horizonUnit: document.getElementById("horizonUnit").value,
+        riskPreference: document.getElementById("riskPreference").value,
+
+        behaviorQ1: document.getElementById("behaviorQ1").value.trim(),
+        behaviorQ2: document.getElementById("behaviorQ2").value.trim(),
+        behaviorQ3: document.getElementById("behaviorQ3").value.trim(),
+        behaviorQ4: document.getElementById("behaviorQ4").value.trim(),
+
+        monthlyExpenses: Number(document.getElementById("monthlyExpenses").value),
+        investmentMethod: document.getElementById("investmentMethod").value,
+        investablePercent: Number(document.getElementById("investablePercent").value),
+        debtStructure: document.getElementById("debtStructure").value.trim(),
+        shortTermLiquidity: document.getElementById("shortTermLiquidity").value.trim()
+      };
+    }
+
+    function validateForm(data) {
+      const error = document.getElementById("formError");
+
+      const missing =
+        !data.age ||
+        !Number.isFinite(data.annualIncome) ||
+        !data.incomeStability ||
+        !Number.isFinite(data.liquidAssets) ||
+        !Number.isFinite(data.realEstate) ||
+        !data.financialGoal ||
+        !data.horizonValue ||
+        !data.horizonUnit ||
+        !data.riskPreference ||
+        !data.behaviorQ1 ||
+        !data.behaviorQ2 ||
+        !data.behaviorQ3 ||
+        !data.behaviorQ4 ||
+        !Number.isFinite(data.monthlyExpenses) ||
+        !data.investmentMethod ||
+        !Number.isFinite(data.investablePercent) ||
+        !data.debtStructure ||
+        !data.shortTermLiquidity;
+
+      if (missing) {
+        error.textContent = "請完成所有問卷欄位後再進行分析。";
+        error.classList.remove("hidden");
+        return false;
+      }
+
+      if (data.age < 18 || data.age > 120) {
+        error.textContent = "請輸入合理的年齡範圍。";
+        error.classList.remove("hidden");
+        return false;
+      }
+
+      if (
+        data.annualIncome < 0 ||
+        data.liquidAssets < 0 ||
+        data.realEstate < 0 ||
+        data.monthlyExpenses < 0 ||
+        data.investablePercent < 0 ||
+        data.investablePercent > 100
+      ) {
+        error.textContent = "數值欄位不可小於 0，比例需介於 0 至 100%。";
+        error.classList.remove("hidden");
+        return false;
+      }
+
+      error.classList.add("hidden");
+      return true;
+    }
+
+    function setLoadingState(isLoading) {
+      const button = document.getElementById("analyzeButton");
+      const text = document.getElementById("analyzeText");
+      const icon = document.getElementById("analyzeIcon");
+
+      button.disabled = isLoading;
+      button.classList.toggle("opacity-70", isLoading);
+      button.classList.toggle("cursor-not-allowed", isLoading);
+
+      if (isLoading) {
+        text.textContent = "AI 分析中...";
+        icon.textContent = "⟳";
+        icon.classList.add("spin");
+      } else {
+        text.textContent = "分析我的投資輪廓";
+        icon.textContent = "→";
+        icon.classList.remove("spin");
+      }
+    }
+
+    function resetDashboard() {
+      document.getElementById("profilingForm").reset();
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("formError").classList.add("hidden");
+
+      if (radarChart) {
+        radarChart.destroy();
+        radarChart = null;
+      }
+
+      if (allocationChart) {
+        allocationChart.destroy();
+        allocationChart = null;
+      }
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const settings = getApiSettings();
+
+      document.getElementById("apiBaseUrl").value = settings.baseUrl;
+      document.getElementById("modelName").value = settings.modelName;
+
+      if (settings.baseUrl && settings.modelName && settings.apiKey) {
+        const status = document.getElementById("apiStatus");
+        status.textContent = "設定已儲存";
+        status.className =
+          "rounded-full bg-emerald-300/20 px-3 py-1 text-xs font-bold text-emerald-200";
+      }
+
+      document
+        .getElementById("saveApiSettings")
+        .addEventListener("click", saveApiSettings);
+
+      document
+        .getElementById("resetButton")
+        .addEventListener("click", resetDashboard);
+
+      document
+        .getElementById("profilingForm")
+        .addEventListener("submit", async event => {
+          event.preventDefault();
+
+          const settings = getApiSettings();
+
+          if (!settings.baseUrl || !settings.modelName || !settings.apiKey) {
+            alert("請先在右上角完成 API Base URL、模型名稱與 API Key 設定。");
+            return;
+          }
+
+          const data = getFormData();
+
+          if (!validateForm(data)) {
+            document.getElementById("formError").scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+            return;
+          }
+
+          setLoadingState(true);
+
+          try {
+            const localProfile = {
+              capacity: calculateCapacity(data),
+              baseline: calculateBaselineRisk(data)
+            };
+
+            const ai = await analyzeWithAI(data, settings);
+
+            const profile = {
+              ...data,
+              ...localProfile,
+              ai
+            };
+
+            profile.decision = calculateDecision(profile);
+
+            renderSummary(profile);
+            renderFeedback(profile);
+            renderRadar(profile);
+            renderAllocation(profile);
+            renderBehaviorAlerts(profile);
+            renderRecommendations(profile);
+
+            document.getElementById("dashboard").classList.remove("hidden");
+
+            setTimeout(() => {
+              document.getElementById("dashboard").scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+            }, 100);
+          } catch (error) {
+            console.error(error);
+
+            if (error.isConnectionError) {
+              return;
+            }
+
+            alert(
+              `AI 分析失敗：${error.message}\n\n請確認 API Base URL、模型名稱、API Key 與 API 回傳格式是否正確。`
+            );
+          } finally {
+            setLoadingState(false);
+          }
+        });
+    });
+  </script>
+</body>
+</html>
